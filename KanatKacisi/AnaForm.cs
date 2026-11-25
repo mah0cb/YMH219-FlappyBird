@@ -1,27 +1,109 @@
+using System.Drawing.Drawing2D;
+using KanatKacisi.Models;
+using KanatKacisi.Services;
+
 namespace KanatKacisi;
 
 /// <summary>Oyunun ana penceresi; yalnızca çizim ve olay bağlama işini yapar.</summary>
 public partial class AnaForm : Form
 {
+    private readonly OyunMotoru _motor = new();
+    private bool _ziplamaTusuBasili;
+
     public AnaForm()
     {
         InitializeComponent();
+        ActiveControl = pnlOyun;
+        tmrOyunDongusu.Start();
     }
 
     private void tmrOyunDongusu_Tick(object? sender, EventArgs e)
+    {
+        _motor.Guncelle();
+        pnlOyun.Invalidate();
+    }
+
+    /// <summary>Yukarı ok tuşunun odak gezintisine gitmeyip KeyDown olayına düşmesini sağlar.</summary>
+    private void pnlOyun_PreviewKeyDown(object? sender, PreviewKeyDownEventArgs e)
+    {
+        if (e.KeyCode == Keys.Up)
+            e.IsInputKey = true;
+    }
+
+    private void AnaForm_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.KeyCode is Keys.Space or Keys.Up)
+        {
+            // Tuş basılı tutulunca tekrar tekrar zıplamasın diye KeyUp gelene kadar yok sayılır.
+            if (!_ziplamaTusuBasili)
+                _motor.ZiplaVeyaBaslat();
+            _ziplamaTusuBasili = true;
+            e.SuppressKeyPress = true;
+        }
+    }
+
+    private void AnaForm_KeyUp(object? sender, KeyEventArgs e)
+    {
+        if (e.KeyCode is Keys.Space or Keys.Up)
+            _ziplamaTusuBasili = false;
+    }
+
+    private void btnYeniOyun_Click(object? sender, EventArgs e)
     {
     }
 
     private void pnlOyun_Paint(object? sender, PaintEventArgs e)
     {
-        e.Graphics.Clear(Color.MidnightBlue);
+        var g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        // Oyun sabit boyutlu bir alanda hesaplanır, panel boyutuna göre ölçeklenerek çizilir.
+        g.ScaleTransform(pnlOyun.ClientSize.Width / (float)OyunMotoru.AlanGenisligi,
+                         pnlOyun.ClientSize.Height / (float)OyunMotoru.AlanYuksekligi);
+
+        ArkaPlaniCiz(g);
+        OyuncuyuCiz(g, _motor.Oyuncu);
+        DurumMesajiniCiz(g);
     }
 
-    private void AnaForm_KeyDown(object? sender, KeyEventArgs e)
+    private static void ArkaPlaniCiz(Graphics g)
     {
+        var gokyuzu = new Rectangle(0, 0, OyunMotoru.AlanGenisligi, OyunMotoru.ZeminY);
+        using (var firca = new LinearGradientBrush(gokyuzu, Color.FromArgb(15, 20, 60), Color.FromArgb(70, 50, 120), LinearGradientMode.Vertical))
+            g.FillRectangle(firca, gokyuzu);
+
+        int zeminYuksekligi = OyunMotoru.AlanYuksekligi - OyunMotoru.ZeminY;
+        g.FillRectangle(Brushes.SaddleBrown, 0, OyunMotoru.ZeminY, OyunMotoru.AlanGenisligi, zeminYuksekligi);
+        g.FillRectangle(Brushes.Peru, 0, OyunMotoru.ZeminY, OyunMotoru.AlanGenisligi, 8);
     }
 
-    private void btnYeniOyun_Click(object? sender, EventArgs e)
+    /// <summary>Pırpır: mor yuvarlak gövde, açık mor kanat, büyük göz ve pembe yanak.</summary>
+    private static void OyuncuyuCiz(Graphics g, Oyuncu oyuncu)
     {
+        var s = oyuncu.Sinirlar;
+        g.FillEllipse(Brushes.MediumPurple, s);
+        g.DrawEllipse(Pens.Indigo, s);
+
+        // Kanat yukarı hızda kalkık, aşağı hızda iner.
+        int kanatY = oyuncu.DikeyHiz < 0 ? s.Y + 2 : s.Y + 12;
+        g.FillEllipse(Brushes.Plum, s.X - 6, kanatY, 16, 11);
+
+        g.FillEllipse(Brushes.White, s.X + 18, s.Y + 5, 11, 11);
+        g.FillEllipse(Brushes.Black, s.X + 23, s.Y + 8, 5, 5);
+        g.FillEllipse(Brushes.HotPink, s.X + 15, s.Y + 17, 7, 5);
+    }
+
+    private void DurumMesajiniCiz(Graphics g)
+    {
+        if (_motor.Durum == OyunDurumu.Hazir)
+            OrtaliYaziCiz(g, "Başlamak için Space / Yukarı ok", 16, 200);
+    }
+
+    private static void OrtaliYaziCiz(Graphics g, string yazi, float boyut, int y)
+    {
+        using var yaziTipi = new Font("Segoe UI", boyut, FontStyle.Bold);
+        var olcu = g.MeasureString(yazi, yaziTipi);
+        float x = (OyunMotoru.AlanGenisligi - olcu.Width) / 2;
+        g.DrawString(yazi, yaziTipi, Brushes.Black, x + 2, y + 2);
+        g.DrawString(yazi, yaziTipi, Brushes.White, x, y);
     }
 }

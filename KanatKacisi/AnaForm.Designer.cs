@@ -92,6 +92,7 @@ partial class AnaForm
         pnlOyun.Size = new Size(480, 600);
         pnlOyun.TabIndex = 2;
         pnlOyun.Paint += pnlOyun_Paint;
+        pnlOyun.PreviewKeyDown += pnlOyun_PreviewKeyDown;
         //
         // stsDurum
         //
@@ -124,6 +125,7 @@ partial class AnaForm
         StartPosition = FormStartPosition.CenterScreen;
         Text = "Kanat Kaçışı";
         KeyDown += AnaForm_KeyDown;
+        KeyUp += AnaForm_KeyUp;
         pnlUst.ResumeLayout(false);
         pnlUst.PerformLayout();
         stsDurum.ResumeLayout(false);
