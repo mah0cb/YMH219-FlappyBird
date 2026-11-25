@@ -61,6 +61,8 @@ public partial class AnaForm : Form
                          pnlOyun.ClientSize.Height / (float)OyunMotoru.AlanYuksekligi);
 
         ArkaPlaniCiz(g);
+        foreach (var engel in _motor.Engeller)
+            EngeliCiz(g, engel);
         OyuncuyuCiz(g, _motor.Oyuncu);
         DurumMesajiniCiz(g);
     }
@@ -76,7 +78,23 @@ public partial class AnaForm : Form
         g.FillRectangle(Brushes.Peru, 0, OyunMotoru.ZeminY, OyunMotoru.AlanGenisligi, 8);
     }
 
-    /// <summary>Pırpır: mor yuvarlak gövde, açık mor kanat, büyük göz ve pembe yanak.</summary>
+    private static void EngeliCiz(Graphics g, Engel engel)
+    {
+        SutunCiz(g, engel.UstSinirlar);
+        SutunCiz(g, engel.AltSinirlar);
+    }
+
+    /// <summary>Taş sütun: gri gövde ve 20 piksel aralıklı taş derzleri.</summary>
+    private static void SutunCiz(Graphics g, Rectangle r)
+    {
+        g.FillRectangle(Brushes.SlateGray, r);
+        using var derz = new Pen(Color.DarkSlateGray, 2);
+        for (int y = r.Top + 20; y < r.Bottom; y += 20)
+            g.DrawLine(derz, r.Left, y, r.Right, y);
+        g.DrawRectangle(derz, r);
+    }
+
+    /// <summary>Pırpır:mor yuvarlak gövde, açık mor kanat, büyük göz ve pembe yanak.</summary>
     private static void OyuncuyuCiz(Graphics g, Oyuncu oyuncu)
     {
         var s = oyuncu.Sinirlar;
