@@ -29,6 +29,16 @@ public class Engel
     public Rectangle UstSinirlar => new((int)_x, 0, Genislik, _boslukY);
     public Rectangle AltSinirlar => new((int)_x, _boslukY + BoslukBoyutu, Genislik, _zeminY - _boslukY - BoslukBoyutu);
 
+    /// <summary>Oyuncu engeli ilk kez tamamen geçtiğinde true döner; aynı engel için bir daha true dönmez.</summary>
+    public bool GecisiKontrolEt(int oyuncuX)
+    {
+        if (_gecildiMi || _x + Genislik >= oyuncuX)
+            return false;
+
+        _gecildiMi = true;
+        return true;
+    }
+
     /// <summary>Engeli verilen hız kadar sola kaydırır.</summary>
     public void Hareket(float hiz) => _x -= hiz;
 

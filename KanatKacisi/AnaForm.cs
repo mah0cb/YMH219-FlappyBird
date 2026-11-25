@@ -20,12 +20,21 @@ public partial class AnaForm : Form
 
     private void Motor_OyunBitti(object? sender, EventArgs e)
     {
-        lblDurum.Text = "Oyun bitti.";
+        lblDurum.Text = $"Oyun bitti. Skor: {_motor.Skor}. Yeniden başlatmak için R'ye basın.";
+    }
+
+    /// <summary>Oyunu sıfırlar ve klavye odağını oyun alanına geri verir.</summary>
+    private void YeniOyunBaslat()
+    {
+        _motor.Sifirla();
+        lblDurum.Text = "Hazır. Başlamak için Space / Yukarı ok.";
+        pnlOyun.Focus();
     }
 
     private void tmrOyunDongusu_Tick(object? sender, EventArgs e)
     {
         _motor.Guncelle();
+        lblSkor.Text = $"Skor: {_motor.Skor}";
         pnlOyun.Invalidate();
     }
 
@@ -42,8 +51,17 @@ public partial class AnaForm : Form
         {
             // Tuş basılı tutulunca tekrar tekrar zıplamasın diye KeyUp gelene kadar yok sayılır.
             if (!_ziplamaTusuBasili)
+            {
+                if (_motor.Durum == OyunDurumu.Hazir)
+                    lblDurum.Text = "Oynanıyor";
                 _motor.ZiplaVeyaBaslat();
+            }
             _ziplamaTusuBasili = true;
+            e.SuppressKeyPress = true;
+        }
+        else if (e.KeyCode == Keys.R)
+        {
+            YeniOyunBaslat();
             e.SuppressKeyPress = true;
         }
     }
@@ -54,9 +72,7 @@ public partial class AnaForm : Form
             _ziplamaTusuBasili = false;
     }
 
-    private void btnYeniOyun_Click(object? sender, EventArgs e)
-    {
-    }
+    private void btnYeniOyun_Click(object? sender, EventArgs e) => YeniOyunBaslat();
 
     private void pnlOyun_Paint(object? sender, PaintEventArgs e)
     {
@@ -127,6 +143,12 @@ public partial class AnaForm : Form
             using (var karartma = new SolidBrush(Color.FromArgb(140, 0, 0, 0)))
                 g.FillRectangle(karartma, 0, 0, OyunMotoru.AlanGenisligi, OyunMotoru.AlanYuksekligi);
             OrtaliYaziCiz(g, "Game Over", 36, 190);
+            OrtaliYaziCiz(g, $"Skor: {_motor.Skor}", 20, 250);
+            OrtaliYaziCiz(g, "Yeniden başlatmak için R veya Yeni Oyun", 13, 300);
+        }
+        else
+        {
+            OrtaliYaziCiz(g, _motor.Skor.ToString(), 32, 30);
         }
     }
 

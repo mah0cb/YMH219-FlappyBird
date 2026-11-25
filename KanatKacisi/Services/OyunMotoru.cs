@@ -20,6 +20,7 @@ public class OyunMotoru
     private Oyuncu _oyuncu = null!;
     private OyunDurumu _durum;
     private float _hiz;
+    private int _skor;
 
     /// <param name="rastgele">Test için sabit tohumlu Random verilebilir.</param>
     public OyunMotoru(Random? rastgele = null)
@@ -38,11 +39,15 @@ public class OyunMotoru
     /// <summary>Engellerin kare başına sola kayma miktarı (piksel).</summary>
     public float Hiz => _hiz;
 
+    /// <summary>Geçilen engel sayısı.</summary>
+    public int Skor => _skor;
+
     /// <summary>Oyunu başlangıç durumuna döndürür.</summary>
     public void Sifirla()
     {
         _oyuncu = new Oyuncu(OyuncuBaslangicX, (ZeminY - Oyuncu.Yukseklik) / 2f);
         _hiz = BaslangicHizi;
+        _skor = 0;
         _durum = OyunDurumu.Hazir;
 
         _engeller.Clear();
@@ -92,7 +97,11 @@ public class OyunMotoru
     private void EngelleriGuncelle()
     {
         foreach (var engel in _engeller)
+        {
             engel.Hareket(_hiz);
+            if (engel.GecisiKontrolEt(_oyuncu.X))
+                _skor++;
+        }
 
         foreach (var engel in _engeller)
         {
