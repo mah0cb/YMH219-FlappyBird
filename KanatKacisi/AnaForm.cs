@@ -14,7 +14,13 @@ public partial class AnaForm : Form
     {
         InitializeComponent();
         ActiveControl = pnlOyun;
+        _motor.OyunBitti += Motor_OyunBitti;
         tmrOyunDongusu.Start();
+    }
+
+    private void Motor_OyunBitti(object? sender, EventArgs e)
+    {
+        lblDurum.Text = "Oyun bitti.";
     }
 
     private void tmrOyunDongusu_Tick(object? sender, EventArgs e)
@@ -113,7 +119,15 @@ public partial class AnaForm : Form
     private void DurumMesajiniCiz(Graphics g)
     {
         if (_motor.Durum == OyunDurumu.Hazir)
+        {
             OrtaliYaziCiz(g, "Başlamak için Space / Yukarı ok", 16, 200);
+        }
+        else if (_motor.Durum == OyunDurumu.Bitti)
+        {
+            using (var karartma = new SolidBrush(Color.FromArgb(140, 0, 0, 0)))
+                g.FillRectangle(karartma, 0, 0, OyunMotoru.AlanGenisligi, OyunMotoru.AlanYuksekligi);
+            OrtaliYaziCiz(g, "Game Over", 36, 190);
+        }
     }
 
     private static void OrtaliYaziCiz(Graphics g, string yazi, float boyut, int y)

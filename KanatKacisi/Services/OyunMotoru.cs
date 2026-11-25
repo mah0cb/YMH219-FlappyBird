@@ -28,6 +28,9 @@ public class OyunMotoru
         Sifirla();
     }
 
+    /// <summary>Oyuncu bir yere çarpıp oyun bittiğinde tetiklenir.</summary>
+    public event EventHandler? OyunBitti;
+
     public Oyuncu Oyuncu => _oyuncu;
     public IReadOnlyList<Engel> Engeller => _engeller;
     public OyunDurumu Durum => _durum;
@@ -65,6 +68,25 @@ public class OyunMotoru
 
         _oyuncu.Guncelle();
         EngelleriGuncelle();
+
+        if (CarpismaVarMi())
+            Bitir();
+    }
+
+    /// <summary>Oyuncu tavana, zemine veya bir engele değdiyse true döner.</summary>
+    public bool CarpismaVarMi()
+    {
+        var sinirlar = _oyuncu.Sinirlar;
+        if (sinirlar.Top < 0 || sinirlar.Bottom >= ZeminY)
+            return true;
+
+        return _engeller.Any(e => sinirlar.IntersectsWith(e.UstSinirlar) || sinirlar.IntersectsWith(e.AltSinirlar));
+    }
+
+    private void Bitir()
+    {
+        _durum = OyunDurumu.Bitti;
+        OyunBitti?.Invoke(this, EventArgs.Empty);
     }
 
     private void EngelleriGuncelle()
