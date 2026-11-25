@@ -1,4 +1,4 @@
-namespace KanatKacisi;
+﻿namespace KanatKacisi;
 
 partial class AnaForm
 {
@@ -67,23 +67,23 @@ partial class AnaForm
         // lblSkor
         //
         lblSkor.AutoSize = true;
-        lblSkor.Location = new Point(192, 12);
+        lblSkor.Location = new Point(190, 12);
         lblSkor.Name = "lblSkor";
         lblSkor.Text = "Skor: 0";
         //
         // lblEnYuksek
         //
         lblEnYuksek.AutoSize = true;
-        lblEnYuksek.Location = new Point(262, 12);
+        lblEnYuksek.Location = new Point(250, 12);
         lblEnYuksek.Name = "lblEnYuksek";
         lblEnYuksek.Text = "En Yüksek: 0";
         //
         // lblSeviye
         //
         lblSeviye.AutoSize = true;
-        lblSeviye.Location = new Point(362, 12);
+        lblSeviye.Location = new Point(345, 12);
         lblSeviye.Name = "lblSeviye";
-        lblSeviye.Text = "Seviye: 1";
+        lblSeviye.Text = "Seviye: 1 (Hız 3,0)";
         //
         // pnlOyun
         //

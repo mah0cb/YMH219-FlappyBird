@@ -8,33 +8,67 @@ namespace KanatKacisi;
 public partial class AnaForm : Form
 {
     private readonly OyunMotoru _motor = new();
+    private readonly EnYuksekSkorDeposu _skorDeposu = new(EnYuksekSkorDeposu.VarsayilanDosyaYolu);
     private bool _ziplamaTusuBasili;
 
     public AnaForm()
     {
         InitializeComponent();
+        cmbZorluk.Items.AddRange(Enum.GetValues<Zorluk>().Cast<object>().ToArray());
+        cmbZorluk.SelectedItem = Zorluk.Normal;
+        cmbZorluk.SelectedIndexChanged += cmbZorluk_SelectedIndexChanged;
         ActiveControl = pnlOyun;
         _motor.OyunBitti += Motor_OyunBitti;
+        EnYuksekSkoruYukle();
         tmrOyunDongusu.Start();
+    }
+
+    private void EnYuksekSkoruYukle()
+    {
+        try
+        {
+            _motor.EnYuksekSkoruAyarla(_skorDeposu.Oku());
+            lblDurum.Text = "Hazır. Başlamak için Space / Yukarı ok.";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            lblDurum.Text = "En yüksek skor dosyası okunamadı: " + ex.Message;
+        }
     }
 
     private void Motor_OyunBitti(object? sender, EventArgs e)
     {
         lblDurum.Text = $"Oyun bitti. Skor: {_motor.Skor}. Yeniden başlatmak için R'ye basın.";
+        if (!_motor.YeniRekor)
+            return;
+
+        try
+        {
+            _skorDeposu.Kaydet(_motor.EnYuksekSkor);
+            lblDurum.Text = $"Yeni rekor: {_motor.EnYuksekSkor}! Yeniden başlatmak için R'ye basın.";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            lblDurum.Text = "Yeni rekor dosyaya kaydedilemedi: " + ex.Message;
+        }
     }
 
-    /// <summary>Oyunu sıfırlar ve klavye odağını oyun alanına geri verir.</summary>
+    /// <summary>Oyunu seçili zorlukla sıfırlar ve klavye odağını oyun alanına geri verir.</summary>
     private void YeniOyunBaslat()
     {
-        _motor.Sifirla();
+        _motor.Sifirla((Zorluk)cmbZorluk.SelectedItem!);
         lblDurum.Text = "Hazır. Başlamak için Space / Yukarı ok.";
         pnlOyun.Focus();
     }
+
+    private void cmbZorluk_SelectedIndexChanged(object? sender, EventArgs e) => YeniOyunBaslat();
 
     private void tmrOyunDongusu_Tick(object? sender, EventArgs e)
     {
         _motor.Guncelle();
         lblSkor.Text = $"Skor: {_motor.Skor}";
+        lblEnYuksek.Text = $"En Yüksek: {_motor.EnYuksekSkor}";
+        lblSeviye.Text = $"Seviye: {_motor.Seviye} (Hız {_motor.Hiz:0.0})";
         pnlOyun.Invalidate();
     }
 
@@ -143,7 +177,9 @@ public partial class AnaForm : Form
             using (var karartma = new SolidBrush(Color.FromArgb(140, 0, 0, 0)))
                 g.FillRectangle(karartma, 0, 0, OyunMotoru.AlanGenisligi, OyunMotoru.AlanYuksekligi);
             OrtaliYaziCiz(g, "Game Over", 36, 190);
-            OrtaliYaziCiz(g, $"Skor: {_motor.Skor}", 20, 250);
+            OrtaliYaziCiz(g, $"Skor: {_motor.Skor}   En Yüksek: {_motor.EnYuksekSkor}", 20, 250);
+            if (_motor.YeniRekor)
+                OrtaliYaziCiz(g, "Yeni rekor!", 18, 340);
             OrtaliYaziCiz(g, "Yeniden başlatmak için R veya Yeni Oyun", 13, 300);
         }
         else
